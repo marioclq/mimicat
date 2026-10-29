@@ -24,6 +24,7 @@ const {
   frameDuration,
   animationLength,
   snapToDevice,
+  isOpenDialog,
   uniqueFrameCount,
   framePosition,
   isDiagonal,
@@ -248,6 +249,13 @@ test("pickDance chooses among every dance in the sheet", () => {
   assert.equal(pickDance(() => 0, animations), "dance");
   assert.equal(pickDance(() => 0.99, animations), "danceJump");
   assert.throws(() => pickDance(() => 0, { idle: {} }), RangeError);
+});
+
+test("isOpenDialog ignores closed dialogs that Spotify keeps in the DOM", () => {
+  assert.equal(isOpenDialog({ width: 0, height: 0 }, "visible"), false);
+  assert.equal(isOpenDialog({ width: 480, height: 300 }, "hidden"), false);
+  assert.equal(isOpenDialog({ width: 480, height: 300 }, "visible"), true);
+  assert.equal(isOpenDialog(null, "visible"), false);
 });
 
 test("uniqueFrameCount counts shared frames once", () => {

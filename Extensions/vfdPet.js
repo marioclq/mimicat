@@ -278,6 +278,14 @@
     return Math.round(value * r) / r;
   }
 
+  // Spotify 1.2.89 keeps closed [role='dialog'] containers in the DOM (0x0,
+  // nothing rendered); only one that takes up space and is not hidden is an
+  // open modal the pet should hide behind.
+  function isOpenDialog(rect, visibility) {
+    if (!rect || visibility === "hidden" || visibility === "collapse") return false;
+    return rect.width > 0 && rect.height > 0;
+  }
+
   function uniqueFrameCount(animations) {
     const seen = new Set();
     for (const data of Object.values(animations || {})) {
@@ -320,6 +328,7 @@
     frameDuration,
     animationLength,
     snapToDevice,
+    isOpenDialog,
     uniqueFrameCount,
     framePosition,
     isDiagonal,
@@ -924,7 +933,8 @@
     if (!state.el) return;
     let open = false;
     try {
-      open = !!document.querySelector("[role='dialog'], .GenericModal, .main-trackCreditsModal-container");
+      const candidates = document.querySelectorAll("[role='dialog'], .GenericModal, .main-trackCreditsModal-container");
+      open = [...candidates].some((node) => isOpenDialog(node.getBoundingClientRect(), getComputedStyle(node).visibility));
     } catch {
       open = false;
     }
