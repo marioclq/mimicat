@@ -1,0 +1,8 @@
+{
+  "name": "VFD Pet",
+  "description": "Michi de alta resolución que sigue al cursor, duerme en la barra de progreso y reacciona a la música.",
+  "preview": "assets/preview/preview.png",
+  "main": "Extensions/vfdPet.js",
+  "readme": "README.md",
+  "tags": ["pet", "cat", "companion", "pixel-art", "fun"]
+}

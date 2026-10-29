@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VFD Pet · harness</title>
+<style>
+  :root {
+    --spice-main: #121212;
+    --spice-main-elevated: #282828;
+    --spice-text: #ffffff;
+    --spice-subtext: #b3b3b3;
+    --spice-button: #1ed760;
+    --spice-button-text: #000000;
+    --spice-font-family: "Segoe UI", system-ui, sans-serif;
+    --hx-green: #1ed760;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden; background: var(--spice-main);
+    color: var(--spice-text); font: 14px/1.45 var(--spice-font-family);
+  }
+  .hx-app { display: grid; grid-template-columns: 230px 1fr; height: calc(100vh - 92px); }
+  .hx-sidebar {
+    display: flex; flex-direction: column; gap: 18px; padding: 22px 16px;
+    background: #0b0b0b; border-right: 1px solid rgba(255,255,255,.06);
+  }
+  .hx-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .2px; }
+  .hx-brand span:first-child {
+    display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #f0b45e, #ef8b9b); color: #1a1424; font-size: 18px;
+  }
+  .hx-nav { display: flex; flex-direction: column; gap: 4px; color: #b3b3b3; font-size: 13px; }
+  .hx-nav span { padding: 8px 10px; border-radius: 7px; }
+  .hx-nav span.on { background: #1c1c1c; color: #fff; font-weight: 600; }
+  .hx-playlist { margin-top: 6px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.08); color: #9a9a9a; font-size: 12px; }
+  .hx-playlist p { margin: 6px 0; }
+  .hx-main {
+    position: relative; overflow: hidden; padding: 26px 30px;
+    background:
+      radial-gradient(900px 340px at 78% -10%, rgba(30,215,96,.16), transparent 60%),
+      radial-gradient(700px 300px at 0% 110%, rgba(239,139,155,.14), transparent 60%),
+      linear-gradient(160deg, #1a1a1a, #121212 60%);
+  }
+  .hx-kicker { margin: 0 0 6px; color: #b3b3b3; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+  .hx-title { margin: 0; font-size: 34px; line-height: 1.1; }
+  .hx-sub { margin: 8px 0 22px; color: #b3b3b3; max-width: 560px; }
+  .hx-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 14px; max-width: 760px; }
+  .hx-card {
+    padding: 14px; border-radius: 10px; background: rgba(255,255,255,.045);
+    border: 1px solid rgba(255,255,255,.06);
+  }
+  .hx-card b { display: block; margin-bottom: 4px; font-size: 13px; }
+  .hx-card small { color: #a7a7a7; font-size: 11px; }
+  .hx-cover {
+    height: 76px; margin-bottom: 10px; border-radius: 6px;
+    background: linear-gradient(135deg, rgba(240,180,94,.75), rgba(239,139,155,.7));
+  }
+  .hx-card:nth-child(2n) .hx-cover { background: linear-gradient(135deg, rgba(56,196,176,.7), rgba(126,202,255,.6)); }
+  .hx-card:nth-child(3n) .hx-cover { background: linear-gradient(135deg, rgba(255,209,102,.7), rgba(240,138,138,.65)); }
+
+  .hx-player {
+    position: fixed; inset: auto 0 0 0; height: 92px; z-index: 10;
+    display: grid; grid-template-columns: 260px 1fr 220px; align-items: center; gap: 18px;
+    padding: 10px 20px; background: #181818; border-top: 1px solid rgba(255,255,255,.07);
+  }
+  .hx-now { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .hx-art { width: 54px; height: 54px; border-radius: 4px; background: linear-gradient(135deg, #f0b45e, #ef8b9b); flex: none; }
+  .hx-now b { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hx-now small { color: #a7a7a7; font-size: 11px; }
+  .hx-center { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+  .hx-transport { display: flex; align-items: center; gap: 16px; color: #d8d8d8; font-size: 15px; }
+  .hx-transport .hx-play {
+    width: 32px; height: 32px; border-radius: 50%; border: 0; background: #fff; color: #000;
+    display: grid; place-items: center; cursor: pointer; font-size: 13px;
+  }
+  .hx-progress { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 560px; }
+  .hx-time { color: #a7a7a7; font-size: 11px; font-variant-numeric: tabular-nums; }
+  .playback-progressbar { flex: 1; height: 4px; border-radius: 999px; background: #4d4d4d; position: relative; }
+  .playback-progressbar i { position: absolute; inset: 0 auto 0 0; width: 38%; border-radius: inherit; background: #fff; }
+  .hx-right { display: flex; justify-content: flex-end; align-items: center; gap: 8px; color: #a7a7a7; font-size: 11px; }
+  .hx-right .hx-vol { width: 96px; height: 4px; border-radius: 999px; background: #4d4d4d; }
+  .hx-right .hx-vol i { display: block; width: 62%; height: 100%; border-radius: inherit; background: #fff; }
+
+  .hx-panel {
+    position: fixed; top: 14px; right: 14px; z-index: 30; width: 330px;
+    max-height: calc(100vh - 130px); overflow: auto; padding: 12px;
+    border-radius: 12px; background: rgba(17, 17, 17, .93);
+    border: 1px solid rgba(255,255,255,.12); box-shadow: 0 16px 40px rgba(0,0,0,.45);
+    backdrop-filter: blur(8px);
+  }
+  .hx-panel h2 { margin: 0 0 2px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+  .hx-panel p { margin: 0 0 10px; color: #9f9f9f; font-size: 11px; }
+  .hx-panel pre {
+    margin: 0 0 10px; padding: 9px; border-radius: 8px; background: #0b0b0b;
+    border: 1px solid rgba(255,255,255,.07); color: #cfd6e6;
+    font: 11px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; word-break: break-word;
+  }
+  .hx-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .hx-btn {
+    padding: 6px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.18);
+    background: transparent; color: #eee; font: inherit; font-size: 11px; cursor: pointer;
+  }
+  .hx-btn:hover, .hx-btn:focus-visible { background: var(--hx-green); color: #000; border-color: transparent; outline: none; }
+  .hx-btn.on { background: var(--hx-green); color: #000; border-color: transparent; }
+  .hx-btn[disabled] { opacity: .45; cursor: not-allowed; }
+  .hx-field { display: flex; gap: 6px; width: 100%; }
+  .hx-field select {
+    flex: 1; padding: 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,.16);
+    background: #191919; color: #eee; font: inherit; font-size: 11px;
+  }
+  .hx-note { margin: 8px 0 0 !important; color: #8f8f8f !important; }
+  .hx-note code { color: #d7d7d7; }
+
+  #demo-cursor {
+    position: fixed; left: 0; top: 0; z-index: 2147482300; width: 18px; height: 18px;
+    margin: -9px 0 0 -9px; border-radius: 50%; pointer-events: none;
+    border: 2px solid #fff; background: rgba(30,215,96,.35);
+    box-shadow: 0 0 0 4px rgba(30,215,96,.16); display: none;
+  }
+  #toast {
+    position: fixed; left: 50%; bottom: 108px; transform: translateX(-50%);
+    z-index: 2147482250; padding: 9px 14px; border-radius: 999px;
+    background: #fff; color: #000; font-size: 12px; font-weight: 600;
+    opacity: 0; transition: opacity .18s ease; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  .hx-fake-dialog {
+    position: fixed; inset: 0; z-index: 2147482150; display: grid; place-items: center;
+    background: rgba(0,0,0,.55);
+  }
+  .hx-fake-dialog div { padding: 22px 26px; border-radius: 12px; background: #282828; border: 1px solid rgba(255,255,255,.1); }
+  .hx-fake-dialog p { margin: 0 0 12px; color: #b3b3b3; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="hx-app">
+  <aside class="hx-sidebar">
+    <div class="hx-brand"><span>ฅ</span><span>VFD Pet</span></div>
+    <nav class="hx-nav">
+      <span class="on">Inicio</span>
+      <span>Buscar</span>
+      <span>Tu biblioteca</span>
+    </nav>
+    <div class="hx-playlist">
+      <p>Michi FM</p>
+      <p>Canciones que ronronean</p>
+      <p>Siesta infinita</p>
+    </div>
+  </aside>
+  <main class="hx-main">
+    <p class="hx-kicker">Simulador local · no es Spotify</p>
+    <h1 class="hx-title">Buenas noches, Mario</h1>
+    <p class="hx-sub">Este harness imita la barra de reproducción y las variables <code>--spice-*</code> para probar el michi sin reiniciar el cliente.</p>
+    <div class="hx-cards">
+      <div class="hx-card"><div class="hx-cover"></div><b>Ronroneo lento</b><small>Michi Trio</small></div>
+      <div class="hx-card"><div class="hx-cover"></div><b>Patitas de terciopelo</b><small>Los Bigotes</small></div>
+      <div class="hx-card"><div class="hx-cover"></div><b>Barra de progreso</b><small>Siameses del sur</small></div>
+      <div class="hx-card"><div class="hx-cover"></div><b>64 píxeles de amor</b><small>Neko Club</small></div>
+    </div>
+  </main>
+</div>
+
+<footer class="main-nowPlayingBar-container hx-player">
+  <div class="hx-now">
+    <div class="hx-art"></div>
+    <div><b id="hx-track">Ronroneo lento</b><small>Michi Trio · Michi FM</small></div>
+  </div>
+  <div class="hx-center">
+    <div class="hx-transport"><span>⏮</span><button class="hx-play" id="hx-play" type="button" aria-label="Reproducir o pausar">❚❚</button><span>⏭</span></div>
+    <div class="hx-progress">
+      <span class="hx-time playback-bar__progress-time-elapsed">1:24</span>
+      <div class="playback-progressbar" role="progressbar" aria-label="Progreso"><i></i></div>
+      <span class="hx-time main-playbackBarRemainingTime-container">2:07</span>
+    </div>
+  </div>
+  <div class="hx-right"><span>🔊</span><span class="hx-vol"><i></i></span></div>
+</footer>
+
+<div class="hx-panel" id="hx-panel">
+  <h2>Panel del harness</h2>
+  <p>El estado se lee de <code>window.__vfdPet</code>.</p>
+  <pre id="hx-state">Cargando…</pre>
+  <div class="hx-row">
+    <button class="hx-btn" id="hx-pet" type="button">Acariciar</button>
+    <button class="hx-btn" id="hx-sleep" type="button">Dormir</button>
+    <button class="hx-btn" id="hx-settings" type="button">Ajustes</button>
+    <button class="hx-btn" id="hx-center" type="button">Centrar</button>
+  </div>
+  <div class="hx-field">
+    <select id="hx-anim" aria-label="Animación"></select>
+    <button class="hx-btn" id="hx-play-anim" type="button">Reproducir</button>
+  </div>
+  <div class="hx-row" style="margin-top:8px">
+    <button class="hx-btn" id="hx-toggle-player" type="button">Pausar</button>
+    <button class="hx-btn" id="hx-song" type="button">Cambiar pista</button>
+    <button class="hx-btn" id="hx-demo" type="button">Cursor demo</button>
+    <button class="hx-btn" id="hx-dialog" type="button">Diálogo falso</button>
+    <button class="hx-btn" id="hx-reload" type="button">Recargar</button>
+  </div>
+  <p class="hx-note">Escribe <code>michi</code> o <code>vfdpet</code> para abrir ajustes. Clic derecho sobre el gato para el menú. El botón <b>Diálogo falso</b> comprueba que el michi se oculta cuando hay un modal.</p>
+</div>
+
+<div id="demo-cursor"></div>
+<div id="toast" role="status"></div>
+
+<script>
+  // Headless Chrome only paints one requestAnimationFrame. With ?qa=1 the
+  // harness drives rAF from timers so screenshots can show motion. Normal use
+  // (no query) keeps the browser's real rAF.
+  (function qaShim() {
+    if (!new URLSearchParams(location.search).has("qa")) return;
+    let nextId = 0;
+    const timers = new Map();
+    window.requestAnimationFrame = (callback) => {
+      const id = ++nextId;
+      const timer = setTimeout(() => {
+        timers.delete(id);
+        callback(performance.now());
+      }, 16);
+      timers.set(id, timer);
+      return id;
+    };
+    window.cancelAnimationFrame = (id) => {
+      const timer = timers.get(id);
+      if (timer) clearTimeout(timer);
+      timers.delete(id);
+    };
+    document.documentElement.dataset.qa = "timers";
+  })();
+
+  // Mocks loaded before Extensions/vfdPet.js. PopupModal is intentionally
+  // absent so the fallback settings dialog is exercised.
+  (function mockSpicetify() {
+    const toast = document.getElementById("toast");
+    let toastTimer = 0;
+    const errors = [];
+    const listeners = new Map();
+    const bindings = [];
+    let buffer = [];
+
+    window.addEventListener("error", (event) => errors.push(`error: ${event.message}`));
+    window.addEventListener("unhandledrejection", (event) => errors.push(`rejection: ${event.reason && event.reason.message}`));
+    window.__harnessErrors = errors;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+
+    function storage(area) {
+      return {
+        get: (key) => area.getItem(key),
+        set: (key, value) => area.setItem(key, value),
+        remove: (key) => area.removeItem(key),
+      };
+    }
+
+    window.Spicetify = {
+      LocalStorage: storage(window.localStorage),
+      showNotification: showToast,
+      Player: {
+        data: { isPlaying: true, item: { name: "Ronroneo lento" } },
+        isPlaying() { return !!this.data.isPlaying; },
+        addEventListener(name, fn) {
+          if (!listeners.has(name)) listeners.set(name, []);
+          listeners.get(name).push(fn);
+        },
+        dispatch(name) {
+          for (const fn of listeners.get(name) || []) {
+            try { fn(); } catch (err) { errors.push(`player ${name}: ${err.message}`); }
+          }
+        },
+      },
+      Mousetrap: {
+        bind(combos, fn) {
+          for (const combo of [].concat(combos)) bindings.push({ keys: String(combo).split(/\s+/), fn });
+        },
+      },
+    };
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target && /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName)) return;
+      const key = String(event.key || "").toLowerCase();
+      if (!/^[a-z]$/.test(key)) return;
+      buffer.push(key);
+      if (buffer.length > 12) buffer.shift();
+      for (const binding of bindings) {
+        if (binding.keys.length > buffer.length) continue;
+        const tail = buffer.slice(buffer.length - binding.keys.length);
+        if (tail.join(" ") === binding.keys.join(" ")) {
+          buffer = [];
+          binding.fn(event);
+          return;
+        }
+      }
+    });
+  })();
+</script>
+<script src="../Extensions/vfdPet.js"></script>
+<script>
+  (function harness() {
+    const $ = (id) => document.getElementById(id);
+    let harnessFrames = 0;
+    const countFrames = () => {
+      harnessFrames += 1;
+      window.__harnessRaf = harnessFrames;
+      requestAnimationFrame(countFrames);
+    };
+    requestAnimationFrame(countFrames);
+    const stateEl = $("hx-state");
+    const sleepBtn = $("hx-sleep");
+    const playerBtn = $("hx-toggle-player");
+    const animSelect = $("hx-anim");
+    const cursor = $("demo-cursor");
+    const names = [
+      "idle", "blink", "alert", "sit",
+      "walkN", "walkNE", "walkE", "walkSE", "walkS", "walkSW", "walkW", "walkNW",
+      "sleep", "tired", "scratchSelf", "scratchWallN", "scratchWallE", "scratchWallS", "scratchWallW",
+      "drag", "happy", "groom", "yawn", "stretch", "dance",
+    ];
+    for (const name of names) {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      animSelect.appendChild(option);
+    }
+
+    function pet() {
+      const api = window.__vfdPet;
+      if (!api) return;
+      api.actions.pet();
+    }
+    function toggleSleep() {
+      const api = window.__vfdPet;
+      if (!api) return;
+      api.actions.toggleSleep();
+    }
+
+    $("hx-pet").addEventListener("click", pet);
+    sleepBtn.addEventListener("click", toggleSleep);
+    $("hx-settings").addEventListener("click", () => window.__vfdPet && window.__vfdPet.actions.openSettings());
+    $("hx-center").addEventListener("click", () => window.__vfdPet && window.__vfdPet.actions.centerPet());
+    $("hx-play-anim").addEventListener("click", () => {
+      if (window.__vfdPet) window.__vfdPet.actions.runAction(animSelect.value);
+    });
+    $("hx-reload").addEventListener("click", () => location.reload());
+
+    let playing = true;
+    function updatePlayButton() {
+      playerBtn.textContent = playing ? "Pausar" : "Reproducir";
+      $("hx-play").textContent = playing ? "❚❚" : "▶";
+    }
+    function setPlaying(next) {
+      playing = next;
+      Spicetify.Player.data.isPlaying = next;
+      Spicetify.Player.dispatch("onplaypause");
+      updatePlayButton();
+    }
+    playerBtn.addEventListener("click", () => setPlaying(!playing));
+    $("hx-play").addEventListener("click", () => setPlaying(!playing));
+
+    let track = 0;
+    const tracks = ["Ronroneo lento", "Patitas de terciopelo", "Barra de progreso", "64 píxeles de amor"];
+    $("hx-song").addEventListener("click", () => {
+      track = (track + 1) % tracks.length;
+      $("hx-track").textContent = tracks[track];
+      Spicetify.Player.data.item.name = tracks[track];
+      Spicetify.Player.dispatch("songchange");
+      Spicetify.showNotification(`Pista: ${tracks[track]}`);
+    });
+
+    let demoTimer = 0;
+    let demoStart = 0;
+    $("hx-demo").addEventListener("click", () => {
+      const button = $("hx-demo");
+      if (demoTimer) {
+        cancelAnimationFrame(demoTimer);
+        demoTimer = 0;
+        cursor.style.display = "none";
+        button.classList.remove("on");
+        return;
+      }
+      button.classList.add("on");
+      cursor.style.display = "block";
+      demoStart = performance.now();
+      const tick = (now) => {
+        const t = (now - demoStart) / 1000;
+        const x = innerWidth / 2 + Math.cos(t * 0.85) * innerWidth * 0.33;
+        const y = innerHeight / 2 + Math.sin(t * 1.25) * innerHeight * 0.26;
+        cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        window.dispatchEvent(new PointerEvent("pointermove", { clientX: x, clientY: y, bubbles: true }));
+        demoTimer = requestAnimationFrame(tick);
+      };
+      demoTimer = requestAnimationFrame(tick);
+    });
+
+    let fakeDialog = null;
+    $("hx-dialog").addEventListener("click", () => {
+      const button = $("hx-dialog");
+      if (fakeDialog) {
+        fakeDialog.remove();
+        fakeDialog = null;
+        button.classList.remove("on");
+        return;
+      }
+      fakeDialog = document.createElement("div");
+      fakeDialog.className = "hx-fake-dialog";
+      fakeDialog.setAttribute("role", "dialog");
+      fakeDialog.setAttribute("aria-modal", "true");
+      const box = document.createElement("div");
+      const text = document.createElement("p");
+      text.textContent = "Diálogo falso: el michi debe ocultarse mientras esto esté abierto.";
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "hx-btn";
+      close.textContent = "Cerrar";
+      close.addEventListener("click", () => {
+        fakeDialog.remove();
+        fakeDialog = null;
+        button.classList.remove("on");
+      });
+      box.appendChild(text);
+      box.appendChild(close);
+      fakeDialog.appendChild(box);
+      document.body.appendChild(fakeDialog);
+      button.classList.add("on");
+    });
+
+    function render() {
+      const api = window.__vfdPet;
+      const errors = window.__harnessErrors || [];
+      if (!api) {
+        stateEl.textContent = `window.__vfdPet no existe\nmarker: ${document.documentElement.dataset.vfdPet || "?"}\n${errors.join("\n")}`;
+        return;
+      }
+      const s = api.getState();
+      const lines = [
+        `marker    ${document.documentElement.dataset.vfdPet || "?"}`,
+        `runtime   raf=${window.__harnessRaf || 0} hidden=${document.hidden} ${document.visibilityState}`,
+        `mode      ${s.mode}    anim ${s.anim} [${s.frame}]`,
+        `pos       ${Math.round(s.pos.x)}, ${Math.round(s.pos.y)}  size ${s.size.width}x${s.size.height}`,
+        `sleep     ${s.sleeping}    drag ${s.dragging}    mimos ${s.affection}`,
+        `settings  ${s.settings.variant} · ${s.settings.scale}x · ${s.settings.speed}px/s`,
+        `flags     follow=${s.settings.follow} auto=${s.settings.autoActions} react=${s.settings.reactToPlayer} reduced=${s.settings.reducedMotion}`,
+        `catalog   ${s.frames} frames / ${s.animations} animaciones`,
+      ];
+      if (errors.length) lines.push(`errores   ${errors.join(" | ")}`);
+      stateEl.textContent = lines.join("\n");
+      sleepBtn.textContent = s.sleeping ? "Despertar" : "Dormir";
+      const current = $("hx-play-anim");
+      if (current) current.classList.toggle("on", s.anim === animSelect.value);
+    }
+
+    setInterval(render, 250);
+    render();
+    updatePlayButton();
+
+    // Visual QA scenarios: dev/harness.html#sleep, #menu, #settings, #drag or any
+    // animation name (#dance, #groom, #yawn...). They only run on demand.
+    const scenario = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (scenario) {
+      setTimeout(() => {
+        const api = window.__vfdPet;
+        if (!api) return;
+        if (scenario === "sleep") {
+          api.actions.startSleep();
+        } else if (scenario === "settings") {
+          api.actions.openSettings();
+        } else if (scenario === "menu") {
+          const el = document.getElementById("vfd-pet");
+          const rect = el.getBoundingClientRect();
+          el.dispatchEvent(new MouseEvent("contextmenu", {
+            bubbles: true, cancelable: true,
+            clientX: rect.right - 12, clientY: rect.top + 14,
+          }));
+        } else if (scenario === "drag") {
+          const el = document.getElementById("vfd-pet");
+          const rect = el.getBoundingClientRect();
+          const startX = rect.left + rect.width / 2;
+          const startY = rect.top + rect.height / 2;
+          el.dispatchEvent(new PointerEvent("pointerdown", {
+            bubbles: true, cancelable: true, button: 0, pointerId: 1, isPrimary: true,
+            clientX: startX, clientY: startY,
+          }));
+          window.dispatchEvent(new PointerEvent("pointermove", {
+            bubbles: true, pointerId: 1,
+            clientX: startX - 160, clientY: startY - 120,
+          }));
+        } else if (names.includes(scenario)) {
+          api.actions.runAction(scenario);
+        }
+      }, 1000);
+    }
+  })();
+</script>
+</body>
+</html>

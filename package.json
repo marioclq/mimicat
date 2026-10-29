@@ -1,0 +1,20 @@
+{
+  "name": "vfd-pet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A high-resolution pixel cat extension for Spicetify.",
+  "scripts": {
+    "sprites": "python tools/import_sprites.py",
+    "build": "node tools/build.js",
+    "pretest": "node tools/build.js",
+    "test": "node --test tests/logic.test.js tests/assets.test.js",
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1",
+    "measure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/measure.ps1",
+    "smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke.ps1",
+    "install:spicetify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1",
+    "uninstall:spicetify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/uninstall.ps1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
